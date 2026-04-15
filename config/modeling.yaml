@@ -1,0 +1,54 @@
+# Experimentação — classificação binária opinion (vinho branco)
+experiment:
+  name: "wine-white-opinion"
+  random_state: 42
+  test_size: 0.3
+  target_column: "opinion"
+
+cv:
+  n_splits: 5
+  scoring: "f1"
+
+feature_engineering:
+  select_k_best:
+    k: 8
+    score_func: "f_classif"
+
+reduction:
+  n_components: 5
+  methods_compare:
+    - "none"
+    - "pca"
+    - "lda"
+
+models:
+  logistic_regression:
+    estimator: "sklearn.linear_model.LogisticRegression"
+    params:
+      solver: "saga"
+      max_iter: 4000
+      random_state: 42
+    search:
+      C: [0.01, 0.1, 1.0, 10.0]
+      penalty: ["l1", "l2"]
+
+  decision_tree:
+    estimator: "sklearn.tree.DecisionTreeClassifier"
+    params:
+      random_state: 42
+    search:
+      max_depth: [3, 4, 5, 6, 7, 8, 9, 10]
+      criterion: ["gini", "entropy"]
+
+  svc_linear:
+    estimator: "sklearn.svm.SVC"
+    params:
+      kernel: "linear"
+      probability: true
+      random_state: 42
+    search:
+      C: [0.1, 0.5, 1.0, 2.0, 5.0]
+
+mlflow:
+  tracking_uri_sqlite: "sqlite:///mlruns.db"
+  registry_model_name: "wine-quality-opinion-best"

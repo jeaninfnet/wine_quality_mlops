@@ -1,0 +1,43 @@
+quality:
+  suite_name: "wine_quality_raw_suite"
+  fail_pipeline_on_error: false
+  output_dir: "outputs/quality"
+
+table_expectations:
+  - type: expect_table_row_count_to_be_between
+    kwargs:
+      min_value: 5000
+      max_value: 8000
+
+  - type: expect_table_columns_to_match_set
+    kwargs:
+      column_set:
+        - "type"
+        - "fixed_acidity"
+        - "volatile_acidity"
+        - "citric_acid"
+        - "residual_sugar"
+        - "chlorides"
+        - "free_sulfur_dioxide"
+        - "total_sulfur_dioxide"
+        - "density"
+        - "ph"
+        - "sulphates"
+        - "alcohol"
+        - "quality"
+      exact_match: true
+
+column_expectations:
+  quality:
+    - type: expect_column_values_to_not_be_null
+    - type: expect_column_values_to_be_between
+      kwargs:
+        min_value: 3
+        max_value: 9
+
+  alcohol:
+    - type: expect_column_values_to_not_be_null
+    - type: expect_column_values_to_be_between
+      kwargs:
+        min_value: 8.0
+        max_value: 16.0
