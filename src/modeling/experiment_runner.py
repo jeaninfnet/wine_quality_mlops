@@ -53,10 +53,26 @@ def _salvar_figuras_modelagem(
     """Grava PNGs em outputs/modeling/<run_name>/ para o relatório e anexa ao run MLflow."""
     out_dir = root_dir / "outputs" / "modeling" / run_name.replace("/", "_")
     out_dir.mkdir(parents=True, exist_ok=True)
+    rng = np.random.default_rng(42)
 
-    fig, ax = plt.subplots(figsize=(4, 4))
-    ConfusionMatrixDisplay.from_predictions(y_test, y_pred, ax=ax)
+    fig, ax = plt.subplots(figsize=(4.8, 4.8))
+    disp = ConfusionMatrixDisplay.from_predictions(
+        y_test,
+        y_pred,
+        ax=ax,
+        display_labels=["0 (≤5)", "1 (>5)"],
+    )
     ax.set_title("Matriz de confusão (holdout)")
+    ax.set_xlabel("Classe predita pelo modelo")
+    ax.set_ylabel("Classe real (opinion)")
+    fig.text(
+        0.5,
+        0.02,
+        "Cada célula: quantas amostras (real na linha, predito na coluna).",
+        ha="center",
+        fontsize=8,
+        style="italic",
+    )
     p_cm = out_dir / "confusion_matrix.png"
     fig.tight_layout()
     fig.savefig(p_cm, dpi=120)
@@ -64,19 +80,143 @@ def _salvar_figuras_modelagem(
     mlflow.log_artifact(str(p_cm))
 
     if proba is not None and len(np.unique(y_test)) > 1:
+        auc = roc_auc_score(y_test, proba)
         fpr, tpr, _ = roc_curve(y_test, proba)
-        fig2, ax2 = plt.subplots(figsize=(5, 4))
-        ax2.plot(fpr, tpr, label=f"AUC = {roc_auc_score(y_test, proba):.3f}")
-        ax2.plot([0, 1], [0, 1], "k--", alpha=0.4)
-        ax2.set_xlabel("FPR")
-        ax2.set_ylabel("TPR")
-        ax2.set_title("ROC (holdout)")
-        ax2.legend()
+
+        # ROC: cada ponto = (FPR, TPR) ao variar o limiar de corte da probabilidade
+        fig2, ax2 = plt.subplots(figsize=(5.8, 5))
+        sc = ax2.scatter(
+            fpr,
+            tpr,
+            s=32,
+            c=range(len(fpr)),
+            cmap="viridis",
+            zorder=5,
+            edgecolors="white",
+            linewidths=0.45,
+            label="pontos (limiares)",
+        )
+        ax2.plot(fpr, tpr, "-", color="C0", linewidth=1.0, alpha=0.75, zorder=4)
+        cbar = fig2.colorbar(sc, ax=ax2, fraction=0.046, pad=0.04)
+        cbar.set_label("Ordem ao longo da curva\n(0≈limiar alto, último≈baixo)", fontsize=7)
+        ax2.plot([0, 1], [0, 1], "k--", alpha=0.35, label="aleatório")
+        ax2.set_xlabel("Taxa de falsos positivos (FPR)")
+        ax2.set_ylabel("Taxa de verdadeiros positivos (TPR)")
+        ax2.set_title(f"Curva ROC (holdout) — AUC = {auc:.3f}")
+        ax2.legend(loc="lower right", fontsize=8)
+        ax2.set_xlim(-0.02, 1.02)
+        ax2.set_ylim(-0.02, 1.02)
+        fig2.text(
+            0.5,
+            0.01,
+            "Cada ponto não é um vinho: é um par (FPR,TPR) ao mudar o limiar de P(opinion=1).",
+            ha="center",
+            fontsize=7,
+            style="italic",
+        )
         fig2.tight_layout()
+        fig2.subplots_adjust(bottom=0.14)
         p_roc = out_dir / "roc_curve.png"
         fig2.savefig(p_roc, dpi=120)
         plt.close(fig2)
         mlflow.log_artifact(str(p_roc))
+
+        # Probabilidade P(opinion=1) por classe real — nuvens de pontos separadas (jitter no eixo x)
+        m0 = y_test == 0
+        m1 = y_test == 1
+        x0 = rng.uniform(-0.12, 0.12, size=int(m0.sum()))
+        x1 = 1.0 + rng.uniform(-0.12, 0.12, size=int(m1.sum()))
+        fig3, ax3 = plt.subplots(figsize=(6, 4.5))
+        ax3.scatter(
+            x0,
+            proba[m0],
+            alpha=0.55,
+            s=22,
+            c="tab:blue",
+            edgecolors="white",
+            linewidths=0.3,
+            label="opinion real = 0",
+        )
+        ax3.scatter(
+            x1,
+            proba[m1],
+            alpha=0.55,
+            s=22,
+            c="tab:orange",
+            edgecolors="white",
+            linewidths=0.3,
+            label="opinion real = 1",
+        )
+        ax3.axhline(0.5, color="gray", linestyle="--", linewidth=1, alpha=0.7, label="limiar 0,5")
+        ax3.set_xticks([0, 1])
+        ax3.set_xticklabels(["vinhos com opinion real = 0", "vinhos com opinion real = 1"])
+        ax3.set_ylabel("Probabilidade predita P(opinion = 1)")
+        ax3.set_title("Cada ponto = um vinho do holdout (cor = classe real)")
+        ax3.legend(loc="best", fontsize=9)
+        ax3.set_xlim(-0.35, 1.35)
+        fig3.text(
+            0.5,
+            0.01,
+            "Eixo horizontal só separa os dois grupos reais; o jitter evita sobreposição.",
+            ha="center",
+            fontsize=7,
+            style="italic",
+        )
+        fig3.tight_layout()
+        fig3.subplots_adjust(bottom=0.12)
+        p_sc = out_dir / "proba_por_classe_real.png"
+        fig3.savefig(p_sc, dpi=120)
+        plt.close(fig3)
+        mlflow.log_artifact(str(p_sc))
+
+        # Um ponto por amostra: (real, predito); verde = acerto, vermelho = erro
+        jitter_x = rng.uniform(-0.08, 0.08, size=len(y_test))
+        jitter_y = rng.uniform(-0.08, 0.08, size=len(y_test))
+        fig4, ax4 = plt.subplots(figsize=(5.2, 5.2))
+        acerto = y_test == y_pred
+        ax4.scatter(
+            y_test[acerto].astype(float) + jitter_x[acerto],
+            y_pred[acerto].astype(float) + jitter_y[acerto],
+            alpha=0.5,
+            s=22,
+            c="tab:green",
+            edgecolors="white",
+            linewidths=0.25,
+            label="acerto",
+        )
+        ax4.scatter(
+            y_test[~acerto].astype(float) + jitter_x[~acerto],
+            y_pred[~acerto].astype(float) + jitter_y[~acerto],
+            alpha=0.65,
+            s=26,
+            c="tab:red",
+            edgecolors="white",
+            linewidths=0.25,
+            label="erro",
+        )
+        ax4.plot([-0.2, 1.2], [-0.2, 1.2], "k--", alpha=0.35, label="diagonal perfeita")
+        ax4.set_xticks([0, 1])
+        ax4.set_yticks([0, 1])
+        ax4.set_xlabel("opinion real (0 ou 1)")
+        ax4.set_ylabel("opinion predita (0 ou 1)")
+        ax4.set_title("Cada ponto = um vinho: comparação real × predito")
+        ax4.set_xlim(-0.25, 1.25)
+        ax4.set_ylim(-0.25, 1.25)
+        ax4.legend(loc="upper left", fontsize=9)
+        fig4.text(
+            0.5,
+            0.02,
+            "Pontos na diagonal tracejada = classificação correta.",
+            ha="center",
+            fontsize=7,
+            style="italic",
+        )
+        fig4.tight_layout()
+        fig4.subplots_adjust(bottom=0.1)
+        p_rp = out_dir / "real_vs_predito.png"
+        fig4.savefig(p_rp, dpi=120)
+        plt.close(fig4)
+        mlflow.log_artifact(str(p_rp))
 
 
 def run_classification_experiments(root_dir: Path, logger: Any = None) -> None:

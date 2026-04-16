@@ -31,8 +31,26 @@ emb = TSNE(n_components=2, random_state=42, perplexity=30).fit_transform(X_scale
 out_dir = ROOT_DIR / "outputs" / "figures"
 out_dir.mkdir(parents=True, exist_ok=True)
 plt.figure(figsize=(7, 6))
-plt.scatter(emb[y == 0, 0], emb[y == 0, 1], alpha=0.35, label="opinion=0 (quality≤5)")
-plt.scatter(emb[y == 1, 0], emb[y == 1, 1], alpha=0.35, label="opinion=1 (quality>5)")
+plt.scatter(
+    emb[y == 0, 0],
+    emb[y == 0, 1],
+    alpha=0.55,
+    s=16,
+    c="tab:blue",
+    edgecolors="white",
+    linewidths=0.35,
+    label="opinion=0 (quality≤5)",
+)
+plt.scatter(
+    emb[y == 1, 0],
+    emb[y == 1, 1],
+    alpha=0.55,
+    s=16,
+    c="tab:orange",
+    edgecolors="white",
+    linewidths=0.35,
+    label="opinion=1 (quality>5)",
+)
 plt.legend()
 plt.title("t-SNE (2D) — vinho branco")
 plt.tight_layout()

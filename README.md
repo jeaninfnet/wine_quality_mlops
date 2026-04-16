@@ -1,4 +1,4 @@
-# Wine Quality — MLOps (Projeto Disciplina 2)
+# Wine Quality — MLOps
 
 Projeto estruturado em torno do **mesmo problema do Projeto 1**: classificação binária `opinion` em **vinho branco** (dataset [rajyellow46/wine-quality](https://www.kaggle.com/datasets/rajyellow46/wine-quality) no Kaggle).
 
@@ -11,7 +11,7 @@ Projeto estruturado em torno do **mesmo problema do Projeto 1**: classificação
 5. **t-SNE** — apenas visualização: `notebooks/reducao_tsne.py`.
 6. **App** — Streamlit: predição + monitoramento simulado.
 
-**Figuras de modelagem:** ao rodar `modelagem.py`, são geradas pastas em **`outputs/modeling/<nome_do_run>/`** (`confusion_matrix.png`, `roc_curve.png`). As mesmas imagens aparecem no MLflow em cada run → **Artifacts**.
+**Figuras de modelagem:** ao rodar `modelagem.py`, em **`outputs/modeling/<nome_do_run>/`**: `confusion_matrix.png`, `roc_curve.png` (curva ROC com **pontos** na curva), `proba_por_classe_real.png` (P(1) com **nuvens separadas** por classe), `real_vs_predito.png` (dispersão real×predito com jitter). Tudo também no MLflow → **Artifacts**.
 
 ## Pré-requisitos
 
