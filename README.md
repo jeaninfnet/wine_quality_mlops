@@ -34,16 +34,10 @@ python notebooks/preprocessamento.py
 python notebooks/modelagem.py
 python notebooks/reducao_tsne.py
 
+mlflow ui --backend-store-uri sqlite:///mlruns.db  
+
 streamlit run production_app/app.py
 ```
-
-## Testes e CI
-
-```bash
-pytest tests/ -v
-```
-
-GitHub Actions: `.github/workflows/ci.yml`.
 
 ## Estrutura
 
@@ -57,7 +51,3 @@ GitHub Actions: `.github/workflows/ci.yml`.
 
 - **PCA** e **LDA** estão integrados ao `Pipeline` sklearn (`src/modeling/reducer.py`).
 - **t-SNE** não é usado em inferência (limitação conhecida do algoritmo); use o PNG em `outputs/figures/` para interpretabilidade e compare com PCA no texto.
-
-## Parte 6 (CI/CD simulado)
-
-O workflow do GitHub Actions executa `pytest` a cada push — exemplo de pipeline de integração contínua para testes automatizados.
