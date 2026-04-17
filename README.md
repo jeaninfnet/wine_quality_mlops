@@ -43,7 +43,6 @@ streamlit run production_app/app.py
 - `src/` — ingestão, qualidade, features, modelagem.
 - `notebooks/` — orquestração fina (scripts com células `# %%`).
 - `production_app/` — Streamlit.
-- `docs/parte1_mapeamento_experimentos.md` — base para a Parte 1 do relatório.
 
 ## Notas para o relatório (Parte 4)
 
