@@ -47,4 +47,3 @@ streamlit run production_app/app.py
 ## Notas para o relatório (Parte 4)
 
 - **PCA** e **LDA** estão integrados ao `Pipeline` sklearn (`src/modeling/reducer.py`).
-- **t-SNE** não é usado em inferência (limitação conhecida do algoritmo); use o PNG em `outputs/figures/` para interpretabilidade e compare com PCA no texto.
