@@ -9,7 +9,7 @@ Projeto estruturado em torno do **mesmo problema do Projeto 1**: classificação
 3. **Pré-processamento** — constrói `opinion`, filtra branco, remove `quality` (`src/wine_pipeline/build_features.py`).
 4. **Modelagem** — `RandomizedSearchCV` + pipelines (RobustScaler → SelectKBest → PCA|LDA|none → classificador) + **MLflow** (SQLite `mlruns.db`).
 5. **t-SNE** — apenas visualização: `notebooks/reducao_tsne.py`.
-6. **App** — Streamlit: predição + monitoramento simulado.
+6. **App** — Streamlit: predição, **comparação de runs** (MLflow) e monitoramento simulado.
 
 **Figuras de modelagem:** ao rodar `modelagem.py`, em **`outputs/modeling/<nome_do_run>/`**: `confusion_matrix.png`, `roc_curve.png` (curva ROC com **pontos** na curva), `proba_por_classe_real.png` (P(1) com **nuvens separadas** por classe), `real_vs_predito.png` (dispersão real×predito com jitter). Tudo também no MLflow → **Artifacts**.
 

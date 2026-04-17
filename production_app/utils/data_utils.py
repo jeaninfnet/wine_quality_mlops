@@ -19,3 +19,10 @@ def carregar_parquet_features() -> pd.DataFrame:
 def colunas_features() -> list[str]:
     df = carregar_parquet_features()
     return [c for c in df.columns if c != "opinion"]
+
+
+def medianas_features() -> dict[str, float]:
+    """Mediana por coluna (exceto alvo) — útil para preencher formulário com valores típicos."""
+    df = carregar_parquet_features()
+    feats = df.drop(columns=["opinion"])
+    return feats.median(numeric_only=True).astype(float).to_dict()
